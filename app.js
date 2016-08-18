@@ -8,8 +8,12 @@ var bodyParser = require('body-parser');
 var routes = require('./routes/index');
 var users = require('./routes/users');
 var data = require('./routes/data');
+
+var tatcount = require('./routes/tatcount');
 var barchart = require('./routes/barchart');
-var tat = require('./routes/tat');
+
+var tatanalyzer = require('./routes/tatanalyzer');
+var boxplotanalyzer = require('./routes/boxplotanalyzer')
 
 var app = express();
 
@@ -28,8 +32,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 //app.use('/', routes);
 app.use('/', barchart);
 app.use('/users', users);
+
+app.use('/tatanalyzer', tatanalyzer);
+app.use('/boxplotanalyzer', boxplotanalyzer);
+
+app.use('/tatcount', tatcount);
 app.use('/barchart', barchart);
-app.use('/tat', tat);
+
 
 //for static file, we don't need to specify route here, though we can do that this way...
 //app.use('/data.json', data);

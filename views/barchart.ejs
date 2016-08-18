@@ -30,6 +30,11 @@
                    legend: {
                        data: ['tat']
                    },
+                   toolbox: {
+                       feature: {
+                           saveAsImage: {}
+                       }
+                   },
                    xAxis: {
                        data: []
                    },
@@ -72,7 +77,7 @@
                
                var option={
                    type:"POST",
-                   url:"tat",
+                   url: "tatcount",
                    //contentType:"application /json;charset:utf-8",
                    //dataType:"json",
                    data:{
@@ -156,6 +161,11 @@
             legend: {
                 data: ['tat']
             },
+            toolbox: {
+                feature: {
+                    saveAsImage: {}
+                }
+            },
             xAxis: {
                 data: []
             },
@@ -169,7 +179,7 @@
 
         // 异步加载数据
         myChart.showLoading();
-        $.get('tat').done(function (data) {
+        $.get('tatcount').done(function (data) {
             myChart.hideLoading();
             // 填入数据
             myChart.setOption({

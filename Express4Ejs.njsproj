@@ -21,13 +21,15 @@
     <Content Include="package.json" />
     <Compile Include="app.js" />
     <Compile Include="mysql\mysql.js" />
-    <Compile Include="routes\tat.js" />
+    <Compile Include="routes\boxplotanalyzer.js" />
+    <Compile Include="routes\tatanalyzer.js" />
+    <Compile Include="routes\tatcount.js" />
     <Compile Include="routes\data.js" />
     <Compile Include="routes\barchart.js" />
     <Compile Include="routes\index.js" />
     <Compile Include="routes\users.js" />
     <Content Include="public\data.json" />
-    <Content Include="views\boxplot.ejs" />
+    <Content Include="views\boxplotanalyzer.ejs" />
     <Content Include="views\error.ejs" />
     <Content Include="views\barchart.ejs" />
     <Content Include="views\index.ejs" />
