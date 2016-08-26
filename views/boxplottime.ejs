@@ -1,0 +1,342 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>ECharts</title>
+    <!-- 引入 echarts.js -->
+    <script src="javascripts/echarts.js"></script>
+    <script src="javascripts/datatool.js"></script>
+    <script src="javascripts/jquery-3.1.0.min.js"></script>
+    <script src="javascripts/ajaxmanager.js"></script>
+
+	<style> /* 设置DIV全屏显示 */
+	html,body{height:100%;}
+	#main{
+		height:auto!important; /*for ie6 bug and ie7+,moz,webkit 正确*/
+		height:100%; /*修复IE6,all browser*/
+		min-height:100%; /*for ie6 bug and ie7+,moz,webkit 正确*/
+	}
+　　</style>
+
+   <script type="text/javascript">
+       $(document).ready(function () {
+           $("#btnFresh").click(function () {
+               var myChart = echarts.init(document.getElementById('main'));
+               // 显示标题，图例和空的坐标轴
+               myChart.setOption({
+                   title: [
+                       {
+                           text: 'boxplot of TAT per Time',
+                           left: 'center',
+                       },
+                       {
+                           text: 'upper: Q3 + 1.5 * IRQ \nlower: Q1 - 1.5 * IRQ',
+                           borderColor: '#999',
+                           borderWidth: 1,
+                           textStyle: {
+                               fontSize: 14
+                           },
+                           left: '10%',
+                           top: '90%'
+                       }
+                   ],
+                   tooltip: {
+                       trigger: 'item',
+                       axisPointer: {
+                           type: 'shadow'
+                       }
+                   },
+                   toolbox: {
+                       feature: {
+                           saveAsImage: {}
+                       }
+                   },
+                   grid: {
+                       left: '10%',
+                       right: '10%',
+                       bottom: '15%'
+                   },
+                   xAxis: {
+                       type: 'category',
+                       data: [],//data.axisData,
+                       boundaryGap: true,
+                       nameGap: 30,
+                       splitArea: {
+                           show: false
+                       },
+                       axisLabel: {
+                           formatter: null//'expr {value}'
+                       },
+                       splitLine: {
+                           show: false
+                       }
+                   },
+                   yAxis: {
+                       type: 'value',
+                       name: 'minutes',
+                       splitArea: {
+                           show: true
+                       }
+                   },
+                   series: [
+                       {
+                           name: 'boxplot',
+                           type: 'boxplot',
+                           data: [],//data.boxData,
+                           tooltip: {
+                               formatter: function (param) {
+                                   return [
+                                       'Experiment ' + param.name + ': ',
+                                       'upper: ' + param.data[4],
+                                       'Q3: ' + param.data[3],
+                                       'median: ' + param.data[2],
+                                       'Q1: ' + param.data[1],
+                                       'lower: ' + param.data[0]
+                                   ].join('<br/>')
+                               }
+                           }
+                       },
+                       {
+                           name: 'outlier',
+                           type: 'scatter',
+                           data: []//data.outliers
+                       }
+                   ]
+               });
+
+               myChart.showLoading();
+              
+               var option={
+                   type:"POST",
+                   url:"tattime",
+                   //contentType:"application /json;charset:utf-8",
+                   //dataType:"json",
+                   data:{
+                       start: $("#start_date").val(),
+                       end: $("#end_date").val()
+                   },
+                   success: function (jsonData) {
+                       var data = echarts.dataTool.prepareBoxplotData([jsonData.tatByTime.morning, jsonData.tatByTime.noon, jsonData.tatByTime.afternoon]);
+                       myChart.hideLoading();
+                       // 填入数据
+                       myChart.setOption({
+                           xAxis: {
+                               type: 'category',
+                               data: data.axisData,
+                               boundaryGap: true,
+                               nameGap: 30,
+                               splitArea: {
+                                   show: false
+                               },
+                               axisLabel: {
+                                   formatter: function (value, index) { var arr = ["morning", "noon", "afternoon"]; return arr[index];}//'expr {value}'
+                               },
+                               splitLine: {
+                                   show: false
+                               }
+                           },
+                           series: [
+                           {
+                               name: 'boxplot',
+                               type: 'boxplot',
+                               data: data.boxData,
+                               tooltip: {
+                                   formatter: function (param) {
+                                       return [
+                                           'Experiment ' + param.name + ': ',
+                                           'upper: ' + param.data[4],
+                                           'Q3: ' + param.data[3],
+                                           'median: ' + param.data[2],
+                                           'Q1: ' + param.data[1],
+                                           'lower: ' + param.data[0]
+                                       ].join('<br/>')
+                                   }
+                               }
+                           },
+                           {
+                               name: 'outlier',
+                               type: 'scatter',
+                               data: data.outliers
+                           }
+                           ]
+                       });
+                    },
+                   error:function(err){
+                       alert(err);
+                    }
+               }
+
+               $.ajax(option);
+
+           })
+       });
+    </script>
+</head>
+
+<body onload="initbody();">
+    <script type="text/javascript">
+        function Date2Str(x, y) {
+            var z = { M: x.getMonth() + 1, d: x.getDate(), h: x.getHours(), m: x.getMinutes(), s: x.getSeconds() };
+            y = y.replace(/(M+|d+|h+|m+|s+)/g, function (v) { return ((v.length > 1 ? "0" : "") + eval('z.' + v.slice(-1))).slice(-2) });
+            return y.replace(/(y+)/g, function (v) { return x.getFullYear().toString().slice(-v.length) });
+        }
+
+        function initbody(){
+            var start_date = document.getElementById("start_date");
+            var end_date = document.getElementById("end_date");
+
+            var today = new Date();
+            var dateString = Date2Str(today, "yyyy-MM-dd"); //+ "-" + month + "-" + day;
+
+            start_date.value = dateString;
+            end_date.value = dateString;
+    }
+    </script>
+
+    <input id="start_date" type="date" value="2016-07-01"/>
+    <input id="end_date" type="date" value="2016-09-01"/>
+    <input id="btnFresh" type="button" value="Fresh" />
+
+	<!--<style>"width:100%;height:100%;"</style>-->
+    <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+    <!--<div id="main" style="width: 600px;height:400px;"></div>-->
+	<!--style="width:100%;height:100%;"-->
+	<div id="main"></div>
+    <script type="text/javascript">
+        var myChart = echarts.init(document.getElementById('main'));
+        // 显示标题，图例和空的坐标轴
+        myChart.setOption({
+            title: [
+                {
+                    text: 'boxplot of TAT per Time',
+                    left: 'center',
+                },
+                {
+                    text: 'upper: Q3 + 1.5 * IRQ \nlower: Q1 - 1.5 * IRQ',
+                    borderColor: '#999',
+                    borderWidth: 1,
+                    textStyle: {
+                        fontSize: 14
+                    },
+                    left: '10%',
+                    top: '90%'
+                }
+            ],
+            tooltip: {
+                trigger: 'item',
+                axisPointer: {
+                    type: 'shadow'
+                }
+            },
+            toolbox: {
+                feature: {
+                    saveAsImage: {}
+                }
+            },
+            grid: {
+                left: '10%',
+                right: '10%',
+                bottom: '15%'
+            },
+            xAxis: {
+                type: 'category',
+                data: [],//data.axisData,
+                boundaryGap: true,
+                nameGap: 30,
+                splitArea: {
+                    show: false
+                },
+                axisLabel: {
+                    formatter: null//'expr {value}'
+                },
+                splitLine: {
+                    show: false
+                }
+            },
+            yAxis: {
+                type: 'value',
+                name: 'minutes',
+                splitArea: {
+                    show: true
+                }
+            },
+            series: [
+                {
+                    name: 'boxplot',
+                    type: 'boxplot',
+                    data: [],//data.boxData,
+                    tooltip: {
+                        formatter: function (param) {
+                            return [
+                                'Experiment ' + param.name + ': ',
+                                'upper: ' + param.data[4],
+                                'Q3: ' + param.data[3],
+                                'median: ' + param.data[2],
+                                'Q1: ' + param.data[1],
+                                'lower: ' + param.data[0]
+                            ].join('<br/>')
+                        }
+                    }
+                },
+                {
+                    name: 'outlier',
+                    type: 'scatter',
+                    data: []//data.outliers
+                }
+            ]
+        });
+
+        // 异步加载数据
+        myChart.showLoading();
+
+        $.get('tattime').done(function (jsonData) {
+
+            alert(jsonData.tatByTime.morning);
+            var data = echarts.dataTool.prepareBoxplotData([jsonData.tatByTime.morning, jsonData.tatByTime.noon, jsonData.tatByTime.afternoon]);
+            myChart.hideLoading();
+            // 填入数据
+            myChart.setOption({
+                xAxis: {
+                    type: 'category',
+                    data: data.axisData,
+                    boundaryGap: true,
+                    nameGap: 30,
+                    splitArea: {
+                        show: false
+                    },
+                    axisLabel: {
+                        formatter: function (value, index) { var arr = ["morning", "noon", "afternoon"]; return arr[index];}//'expr {value}'
+                    },
+                    splitLine: {
+                        show: false
+                    }
+                },
+                series: [
+                {
+                    name: 'boxplot',
+                    type: 'boxplot',
+                    data: data.boxData,
+                    tooltip: {
+                        formatter: function (param) {
+                            return [
+                                'Experiment ' + param.name + ': ',
+                                'upper: ' + param.data[4],
+                                'Q3: ' + param.data[3],
+                                'median: ' + param.data[2],
+                                'Q1: ' + param.data[1],
+                                'lower: ' + param.data[0]
+                            ].join('<br/>')
+                        }
+                    }
+                },
+                {
+                    name: 'outlier',
+                    type: 'scatter',
+                    data: data.outliers
+                }
+                ]
+            });
+        });
+    </script>
+</body>
+</html>

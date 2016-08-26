@@ -54,8 +54,6 @@ function queryTatCount(startDate, endDate, callback, func) {
         conn.query(queryString, [low, high], function (err, rows, fields) {
             if (err) {
                 throw err;
-                var o = { code: 1, msg: "error during quering mysql database!" };
-                res.end(JSON.stringify(o));
                 
                 return false;
             } else if (rows.length == 0) {
@@ -108,8 +106,6 @@ function queryTatPerAnalyzers(startDate, endDate, callback, func) {
         conn.query(mysqlQuery, [], function (err, rows, fields) {
             if (err) {
                 throw err;
-                var o = { code: 1, msg: "error during quering mysql database!" };
-                res.end(JSON.stringify(o));
                 
                 return false;
             } else if (rows.length == 0) {
@@ -153,10 +149,61 @@ function displayAnalyzerTat(tat) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
+//query tat per morning/noon/afternoon
+///////////////////////////////////////////////////////////////////////////////////
+function queryTatPerTimes(startDate, endDate, callback, func) {
+    var queryString = "SELECT tat FROM tat WHERE tat > 0 AND tat < 200";
+    var conn = getConnection();
+    var time_types = ["morning", "noon", "afternoon"];
+    
+    var queryResults = [];
+    var count = 0;
+    
+    if (startDate && endDate) {
+        queryString += " AND las_inlab > '" + startDate + "' AND las_inlab < '" + endDate + "'";
+    }
+    
+    for (var index = 0; index < time_types.length; index++) {
+        var mysqlQuery = "";
+        
+        mysqlQuery = queryString + " AND inlab_cat = '" + time_types[index] + "'";
+        console.log("query string: \n" + mysqlQuery);
+        conn.query(mysqlQuery, [], function (err, rows, fields) {
+            if (err) {
+                throw err;
+                          
+                return false;
+            } else if (rows.length == 0) {
+                row = null;
+            } else {
+                var result = [];
+                for (var i = 0; i < rows.length; i++) {
+                    row = rows[i];
+                    result.push(Number(row.tat));
+                }
+                
+                queryResults.push(result);
+            }
+            
+            if (queryResults.length == time_types.length) {
+                tatDefinition["tatByTime"]["morning"] = queryResults[0];
+                tatDefinition["tatByTime"]["noon"] = queryResults[1];
+                tatDefinition["tatByTime"]["afternoon"] = queryResults[2];
+                callback && callback(func, tatDefinition);
+                console.log(queryResults);
+            }
+        });
+    }
+    
+    return queryResults;
+}
+
+
 
 //queryTatCount(null,null,callbackMySqlCountDone,displayTat);
 //queryTatPerAnalyzers(null,null, callbackMySqlAnalyzerDone, displayAnalyzerTat);
 exports.queryTatCount = queryTatCount;
 exports.queryTatPerAnalyzers = queryTatPerAnalyzers;
+exports.queryTatPerTimes = queryTatPerTimes;
 
 

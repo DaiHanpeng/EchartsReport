@@ -13,7 +13,10 @@ var tatcount = require('./routes/tatcount');
 var barchart = require('./routes/barchart');
 
 var tatanalyzer = require('./routes/tatanalyzer');
-var boxplotanalyzer = require('./routes/boxplotanalyzer')
+var boxplotanalyzer = require('./routes/boxplotanalyzer');
+
+var tattime = require('./routes/tattime');
+var boxplottime = require('./routes/boxplottime');
 
 var app = express();
 
@@ -35,6 +38,9 @@ app.use('/users', users);
 
 app.use('/tatanalyzer', tatanalyzer);
 app.use('/boxplotanalyzer', boxplotanalyzer);
+
+app.use('/tattime', tattime);
+app.use('/boxplottime', boxplottime);
 
 app.use('/tatcount', tatcount);
 app.use('/barchart', barchart);
