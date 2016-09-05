@@ -1,6 +1,6 @@
 ﻿var express = require('express');
 var router = express.Router();
-var data = require('../public/data.json');
+//var data = require('../public/data.json');
 var db = require('../mysql/mysql')
 
 function sendTatJson(response, tat){

@@ -18,6 +18,9 @@ var boxplotanalyzer = require('./routes/boxplotanalyzer');
 var tattime = require('./routes/tattime');
 var boxplottime = require('./routes/boxplottime');
 
+var tatmultiplot = require('./routes/tatmultiplot')
+var multiplot = require('./routes/multiplot')
+
 var app = express();
 
 // view engine setup
@@ -44,6 +47,9 @@ app.use('/boxplottime', boxplottime);
 
 app.use('/tatcount', tatcount);
 app.use('/barchart', barchart);
+
+app.use('/tatmultiplot', tatmultiplot);
+app.use('/multiplot', multiplot);
 
 
 //for static file, we don't need to specify route here, though we can do that this way...

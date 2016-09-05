@@ -6,7 +6,7 @@ var fs = require('fs');
 
 var dbConfig = require("./mysql.json");
 var tatDefinition = require("./TatByMinutes.json");
-
+var multiplotDefinition = require("./TatMultiPlot.json")
 
 //connection interface.
 function getConnection() {
@@ -198,12 +198,125 @@ function queryTatPerTimes(startDate, endDate, callback, func) {
     return queryResults;
 }
 
+///////////////////////////////////////////////////////////////////////////////////
+//query inlab/result/avg_tat in [startDate, endDate]
+///////////////////////////////////////////////////////////////////////////////////
+function queryTatMultiPlot(startDate, endDate, callback, func) {
+    var queryString = "SELECT COUNT(*) as count FROM tat WHERE tat > 0 AND tat < 200";
+    var conn = getConnection();
+    //var time_types = ["morning", "noon", "afternoon"];
+    var query_result = multiplotDefinition;
+    
+    var queryResults = [];
+    var count = 0;
+    
+    if (startDate && endDate) {
+        queryString += " AND las_inlab > '" + startDate + "' AND las_inlab < '" + endDate + "'";
+    }
+    //1.query las inlab count
+    for (var index = 0; index < multiplotDefinition["hours"].length; index++) {
+        var mysqlQuery = "";
+        
+        mysqlQuery = queryString + " AND HOUR(las_inlab) = '" + multiplotDefinition["hours"][index] + "'";
+        //console.log("query string: \n" + mysqlQuery);
+        conn.query(mysqlQuery, [], function (err, rows, fields) {
+            if (err) {
+                throw err;
+                
+                return false;
+            } else if (rows.length == 0) {
+                row = null;
+            } else {
+                //
+                queryResults.push(rows[0].count);
+            }
+            
+            if (queryResults.length == multiplotDefinition["hours"].length) {
+                query_result["inlab_count"] = queryResults
+                //callback && callback(func, query_result);
+                console.log(queryResults);
+                queryResults = [];
+            }
+        });
+    }
 
+    //2.query lis_result count
+    queryResults = [];
+    for (var index = 0; index < multiplotDefinition["hours"].length; index++) {
+        var mysqlQuery = "";
+        
+        mysqlQuery = queryString + " AND HOUR(lis_upload) = '" + multiplotDefinition["hours"][index] + "'";
+        //console.log("query string: \n" + mysqlQuery);
+        conn.query(mysqlQuery, [], function (err, rows, fields) {
+            if (err) {
+                throw err;
+                
+                return false;
+            } else if (rows.length == 0) {
+                row = null;
+            } else {
+                //
+                queryResults.push(rows[0].count);
+            }
+
+            if (queryResults.length == multiplotDefinition["hours"].length) {
+                query_result["result_count"] = queryResults
+                //callback && callback(func, query_result);
+                console.log(queryResults);
+                queryResults = [];
+                //console.log(query_result)
+            }
+        });
+    }
+    
+    //3. query for tat per hour
+    var tatQueryString = "SELECT round(AVG(tat)) as avg_tat FROM tat WHERE tat > 0 AND tat < 200";
+    if (startDate && endDate) {
+        tatQueryString += " AND las_inlab > '" + startDate + "' AND las_inlab < '" + endDate + "'";
+    }
+
+    for (var index = 0; index < multiplotDefinition["hours"].length; index++) {
+        var mysqlQuery = "";
+        
+        mysqlQuery = tatQueryString + " AND HOUR(las_inlab) = '" + multiplotDefinition["hours"][index] + "'";
+        //console.log("query string: \n" + mysqlQuery);
+        conn.query(mysqlQuery, [], function (err, rows, fields) {
+            if (err) {
+                throw err;
+                
+                return false;
+            } else if (rows.length == 0) {
+                row = null;
+            } else {
+                //
+                var avg_tat = 0;
+                //console.log('get tat: ' + rows[0].avg_tat);
+                if (rows[0].avg_tat != null){
+                    avg_tat = rows[0].avg_tat;
+                }
+                queryResults.push(avg_tat);
+            }
+            
+            if (queryResults.length == multiplotDefinition["hours"].length) {
+                query_result["avg_tat"] = queryResults
+                callback && callback(func, query_result);
+                console.log(queryResults);
+                queryResults = [];
+                console.log(query_result)
+            }
+        });
+    }
+    
+    return queryResults;
+}
 
 //queryTatCount(null,null,callbackMySqlCountDone,displayTat);
 //queryTatPerAnalyzers(null,null, callbackMySqlAnalyzerDone, displayAnalyzerTat);
+
 exports.queryTatCount = queryTatCount;
 exports.queryTatPerAnalyzers = queryTatPerAnalyzers;
 exports.queryTatPerTimes = queryTatPerTimes;
+exports.queryTatMultiPlot = queryTatMultiPlot;
+
 
 

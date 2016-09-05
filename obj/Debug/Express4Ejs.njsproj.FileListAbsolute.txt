@@ -1,0 +1,2 @@
+D:\JavaScript_Projects\Express4Ejs\TestEcharts02\Express4Ejs\obj\Debug\Express4Ejs.njsprojResolveAssemblyReference.cache
+D:\JavaScript_Projects\Express4Ejs\TestEcharts02\Express4Ejs\bin\Microsoft.NodejsTools.WebRole.dll

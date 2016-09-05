@@ -1,0 +1,354 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>ECharts</title>
+    <!-- 引入 echarts.js -->
+    <script src="javascripts/echarts.js"></script>
+    <script src="javascripts/datatool.js"></script>
+    <script src="javascripts/jquery-3.1.0.min.js"></script>
+    <script src="javascripts/ajaxmanager.js"></script>
+
+	<style> /* 设置DIV全屏显示 */
+	html,body{height:100%;}
+	#main{
+		height:auto!important; /*for ie6 bug and ie7+,moz,webkit 正确*/
+		height:100%; /*修复IE6,all browser*/
+		min-height:100%; /*for ie6 bug and ie7+,moz,webkit 正确*/
+	}
+　　</style>
+
+   <script type="text/javascript">
+       $(document).ready(function () {
+           $("#btnFresh").click(function () {
+               var colors = ['#5793f3', '#d14a61', '#675bba'];
+               var myChart = echarts.init(document.getElementById('main'));
+               // 显示标题，图例和空的坐标轴
+               myChart.setOption({
+                   color: colors,
+
+                   tooltip: {
+                       trigger: 'axis'
+                   },
+                   grid: {
+                       right: '20%'
+                   },
+                   toolbox: {
+                       feature: {
+                           dataView: { show: true, readOnly: false },
+                           restore: { show: true },
+                           saveAsImage: { show: true }
+                       }
+                   },
+                   legend: {
+                       data: ['Inlab', 'Result', 'TAT']
+                   },
+                   xAxis: [
+                       {
+                           type: 'category',
+                           axisTick: {
+                               alignWithLabel: true
+                           },
+                           data: ['6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20']
+                       }
+                   ],
+                   yAxis: [
+                       {
+                           type: 'value',
+                           name: 'Inlab',
+                           //min: 0,
+                           //max: 250,
+                           position: 'right',
+                           axisLine: {
+                               lineStyle: {
+                                   color: colors[0]
+                               }
+                           },
+                           axisLabel: {
+                               formatter: '{value} tubes'
+                           }
+                       },
+                       {
+                           type: 'value',
+                           name: 'Result',
+                           //min: 0,
+                           //max: 250,
+                           position: 'right',
+                           offset: 50,
+                           axisLine: {
+                               lineStyle: {
+                                   color: colors[1]
+                               }
+                           },
+                           axisLabel: {
+                               formatter: '{value} tubes'
+                           }
+                       },
+                       {
+                           type: 'value',
+                           name: 'TAT',
+                           //min: 0,
+                           //max: 25,
+                           position: 'left',
+                           axisLine: {
+                               lineStyle: {
+                                   color: colors[2]
+                               }
+                           },
+                           axisLabel: {
+                               formatter: '{value} minutes'
+                           }
+                       }
+                   ],
+                   series: [
+                       {
+                           name: 'Inlab',
+                           type: 'bar',
+                           data: []
+                       },
+                       {
+                           name: 'Result',
+                           type: 'bar',
+                           yAxisIndex: 1,
+                           data: []
+                       },
+                       {
+                           name: 'TAT',
+                           type: 'line',
+                           yAxisIndex: 2,
+                           data: []
+                       }
+                   ]
+               });
+
+               myChart.showLoading();
+              
+               var option={
+                   type:"POST",
+                   url:"tatmultiplot",
+                   //contentType:"application /json;charset:utf-8",
+                   //dataType:"json",
+                   data:{
+                       start: $("#start_date").val(),
+                       end: $("#end_date").val()
+                   },
+                   success: function (jsonData) {
+                       //var data = echarts.dataTool.prepareBoxplotData([jsonData.tatByTime.morning, jsonData.tatByTime.noon, jsonData.tatByTime.afternoon]);
+                       myChart.hideLoading();
+                       // 填入数据
+                       myChart.setOption({
+                           xAxis: [
+                               {
+                                   type: 'category',
+                                   axisTick: {
+                                       alignWithLabel: true
+                                   },
+                                   data: jsonData.hours
+                               }
+                           ],
+                           series: [
+                                   {
+                                       name: 'Inlab',
+                                       type: 'bar',
+                                       data: jsonData.inlab_count
+                                   },
+                                   {
+                                       name: 'Result',
+                                       type: 'bar',
+                                       yAxisIndex: 1,
+                                       data: jsonData.result_count
+                                   },
+                                   {
+                                       name: 'TAT',
+                                       type: 'line',
+                                       yAxisIndex: 2,
+                                       data: jsonData.avg_tat
+                                   }
+                           ]
+                       });
+                    },
+                   error:function(err){
+                       alert(err);
+                    }
+               }
+
+               $.ajax(option);
+
+           })
+       });
+    </script>
+</head>
+
+<body onload="initbody();">
+    <script type="text/javascript">
+        function Date2Str(x, y) {
+            var z = { M: x.getMonth() + 1, d: x.getDate(), h: x.getHours(), m: x.getMinutes(), s: x.getSeconds() };
+            y = y.replace(/(M+|d+|h+|m+|s+)/g, function (v) { return ((v.length > 1 ? "0" : "") + eval('z.' + v.slice(-1))).slice(-2) });
+            return y.replace(/(y+)/g, function (v) { return x.getFullYear().toString().slice(-v.length) });
+        }
+
+        function initbody(){
+            var start_date = document.getElementById("start_date");
+            var end_date = document.getElementById("end_date");
+
+            var today = new Date();
+            var dateString = Date2Str(today, "yyyy-MM-dd"); //+ "-" + month + "-" + day;
+
+            start_date.value = dateString;
+            end_date.value = dateString;
+    }
+    </script>
+
+    <input id="start_date" type="date" value="2016-07-01"/>
+    <input id="end_date" type="date" value="2016-09-01"/>
+    <input id="btnFresh" type="button" value="Fresh" />
+
+	<!--<style>"width:100%;height:100%;"</style>-->
+    <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+    <!--<div id="main" style="width: 600px;height:400px;"></div>-->
+	<!--style="width:100%;height:100%;"-->
+	<div id="main"></div>
+    <script type="text/javascript">
+        var colors = ['#5793f3', '#d14a61', '#675bba'];
+        var myChart = echarts.init(document.getElementById('main'));
+        // 显示标题，图例和空的坐标轴
+        myChart.setOption({
+            color: colors,
+
+            tooltip: {
+                trigger: 'axis'
+            },
+            grid: {
+                right: '20%'
+            },
+            toolbox: {
+                feature: {
+                    dataView: { show: true, readOnly: false },
+                    restore: { show: true },
+                    saveAsImage: { show: true }
+                }
+            },
+            legend: {
+                data: ['Inlab', 'Result', 'TAT']
+            },
+            xAxis: [
+                {
+                    type: 'category',
+                    axisTick: {
+                        alignWithLabel: true
+                    },
+                    data: ['6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20']
+                }
+            ],
+            yAxis: [
+                {
+                    type: 'value',
+                    name: 'Inlab',
+                    //min: 0,
+                    //max: 250,
+                    position: 'right',
+                    axisLine: {
+                        lineStyle: {
+                            color: colors[0]
+                        }
+                    },
+                    axisLabel: {
+                        formatter: '{value} tubes'
+                    }
+                },
+                {
+                    type: 'value',
+                    name: 'Result',
+                    //min: 0,
+                    //max: 250,
+                    position: 'right',
+                    offset: 100,
+                    axisLine: {
+                        lineStyle: {
+                            color: colors[1]
+                        }
+                    },
+                    axisLabel: {
+                        formatter: '{value} tubes'
+                    }
+                },
+                {
+                    type: 'value',
+                    name: 'TAT',
+                    //min: 0,
+                    //max: 25,
+                    position: 'left',
+                    axisLine: {
+                        lineStyle: {
+                            color: colors[2]
+                        }
+                    },
+                    axisLabel: {
+                        formatter: '{value} minutes'
+                    }
+                }
+            ],
+            series: [
+                {
+                    name: 'Inlab',
+                    type: 'bar',
+                    data: []
+                },
+                {
+                    name: 'Result',
+                    type: 'bar',
+                    yAxisIndex: 1,
+                    data: []
+                },
+                {
+                    name: 'TAT',
+                    type: 'line',
+                    yAxisIndex: 2,
+                    data: []
+                }
+            ]
+        });
+
+        // 异步加载数据
+        myChart.showLoading();
+
+        $.get('tatmultiplot').done(function (jsonData) {
+
+            //alert(jsonData.avg_tat);
+            //var data = echarts.dataTool.prepareBoxplotData([jsonData.inlab_count, jsonData.result_count, jsonData.avg_tat]);
+            myChart.hideLoading();
+            // 填入数据
+            myChart.setOption({
+                xAxis: [
+                    {
+                        type: 'category',
+                        axisTick: {
+                            alignWithLabel: true
+                        },
+                        data: jsonData.hours
+                    }
+                ],
+                series: [
+                        {
+                            name: 'Inlab',
+                            type: 'bar',
+                            data: jsonData.inlab_count
+                        },
+                        {
+                            name: 'Result',
+                            type: 'bar',
+                            yAxisIndex: 1,
+                            data: jsonData.result_count
+                        },
+                        {
+                            name: 'TAT',
+                            type: 'line',
+                            yAxisIndex: 2,
+                            data: jsonData.avg_tat
+                        }
+                ]
+            });
+        });
+    </script>
+</body>
+</html>

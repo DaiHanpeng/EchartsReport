@@ -291,7 +291,6 @@
 
         $.get('tattime').done(function (jsonData) {
 
-            alert(jsonData.tatByTime.morning);
             var data = echarts.dataTool.prepareBoxplotData([jsonData.tatByTime.morning, jsonData.tatByTime.noon, jsonData.tatByTime.afternoon]);
             myChart.hideLoading();
             // 填入数据
